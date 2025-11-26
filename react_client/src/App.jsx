@@ -60,7 +60,7 @@ function App() {
       </button>
 
       {result && (
-        <pre style={{ marginTop: "2rem", background: "#f4f4f4", padding: "1rem" }}>
+        <pre style={{ marginTop: "2rem", background: "#fc0101ff", padding: "1rem" }}>
           {JSON.stringify(result, null, 2)}
         </pre>
       )}
