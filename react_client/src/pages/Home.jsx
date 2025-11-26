@@ -1,23 +1,27 @@
-// src/Components/Home.jsx
 import { useState } from "react";
 import UploadForm from "../components/UploadForm";
 import PredictionResult from "../components/PredictionResult";
 import HistoryList from "../components/HistoryList";
+import Chatbot from "../components/Chatbot";
 import { uploadAndPredict } from "../api/client";
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState("predict"); // "predict" | "history"
+  const [activeTab, setActiveTab] = useState("predict");
+
+  // ✅ Chatbot conversation memory
+  const [chatMessages, setChatMessages] = useState([]);
 
   async function handleSubmit(file) {
     try {
       setLoading(true);
+
       const data = await uploadAndPredict(file);
       setResult(data);
 
-      // push into local history
+      // Save prediction into history tab
       setHistory((prev) => [
         {
           fileName: file.name,
@@ -27,6 +31,7 @@ export default function Home() {
         },
         ...prev,
       ]);
+
     } catch (err) {
       console.error(err);
       setResult({ error: "Prediction failed. Try again." });
@@ -36,38 +41,46 @@ export default function Home() {
   }
 
   return (
-    <div className="card shadow-sm">
+    <div className="card shadow-sm w-100">
       <div className="card-body">
-        {/* Tabs */}
+
+        {/* Tabs Header */}
         <div className="border-bottom mb-3">
           <ul className="nav nav-tabs mb-4">
-          <li className="nav-item">
-            <button
-              type="button"
-              className={
-                "nav-link " + (activeTab === "predict" ? "active" : "")
-              }
-              onClick={() => setActiveTab("predict")}
-            >
-              Prediction
-            </button>
-          </li>
-          <li className="nav-item">
-            <button
-              type="button"
-              className={
-                "nav-link " + (activeTab === "history" ? "active" : "")
-              }
-              onClick={() => setActiveTab("history")}
-            >
-              History
-            </button>
-          </li>
-        </ul>
-        </div>
-        
 
-        {/* Tab Content */}
+            <li className="nav-item">
+              <button
+                className={`nav-link ${activeTab === "predict" ? "active" : ""}`}
+                onClick={() => setActiveTab("predict")}
+              >
+                Prediction
+              </button>
+            </li>
+
+            <li className="nav-item">
+              <button
+                className={`nav-link ${activeTab === "history" ? "active" : ""}`}
+                onClick={() => setActiveTab("history")}
+              >
+                History
+              </button>
+            </li>
+
+            <li className="nav-item">
+              <button
+                className={`nav-link ${activeTab === "chatbot" ? "active" : ""}`}
+                onClick={() => setActiveTab("chatbot")}
+              >
+                Chatbot
+              </button>
+            </li>
+
+          </ul>
+        </div>
+
+        {/* --- TAB CONTENTS --- */}
+
+        {/* PREDICTION TAB */}
         {activeTab === "predict" && (
           <>
             <UploadForm onSubmit={handleSubmit} loading={loading} />
@@ -75,9 +88,20 @@ export default function Home() {
           </>
         )}
 
+        {/* HISTORY TAB */}
         {activeTab === "history" && (
           <HistoryList history={history} />
         )}
+
+        {/* CHATBOT TAB */}
+        {activeTab === "chatbot" && (
+          <Chatbot
+            lastPrediction={result}     // pass latest prediction for context
+            messages={chatMessages}     // persistent chat memory
+            setMessages={setChatMessages} // allow chatbot to update it
+          />
+        )}
+
       </div>
     </div>
   );
